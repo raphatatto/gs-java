@@ -45,10 +45,13 @@ public class UsuarioResource {
     @POST
     public Response criarUsuario(Usuario usuario) {
         try {
+            if (usuarioDAO.usuarioExiste(usuario.getEmail())) {
+                return Response.status(Response.Status.CONFLICT).entity("E-mail já cadastrado.").build();
+            }
             usuarioDAO.cadastrarUsuario(usuario);
             return Response.status(Response.Status.CREATED).entity("Usuário criado com sucesso!").build();
         } catch (SQLException | ClassNotFoundException e) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
     }
 

@@ -86,4 +86,43 @@ public class UsuarioDAO {
             return stmt.executeUpdate() > 0;
         }
     }
+
+    public Usuario buscarPorEmailESenha(String email, String senhaHash) {
+        String sql = "SELECT * FROM t_gs_usuario WHERE email = ? AND senha_hash = ?";
+        try (Connection conn = ConnectionFactory.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, email);
+            stmt.setString(2, senhaHash);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Usuario(
+                            rs.getInt("id"),
+                            rs.getString("nome"),
+                            rs.getString("email"),
+                            rs.getString("senha_hash"),
+                            rs.getTimestamp("data_criacao")
+                    );
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null; // Retorna null se o usuário não for encontrado
+    }
+
+    public boolean usuarioExiste(String email) throws SQLException, ClassNotFoundException {
+        String sql = "SELECT COUNT(*) FROM t_gs_usuario WHERE email = ?";
+        try (Connection conn = ConnectionFactory.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0; // Retorna true se o e-mail já existir
+                }
+            }
+        }
+        return false; // Retorna false caso o e-mail não seja encontrado
+    }
 }
