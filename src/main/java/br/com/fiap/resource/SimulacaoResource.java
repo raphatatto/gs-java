@@ -1,26 +1,20 @@
 package br.com.fiap.resource;
 
-
-
-
-import br.com.fiap.bo.SimulacaoBO;
 import br.com.fiap.dao.SimulacaoDAO;
-import br.com.fiap.exception.CustomException;
 import br.com.fiap.model.Simulacao;
+
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-
 import java.sql.SQLException;
 
-@Path("/simulacoes")
+@Path("/simulacao")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class SimulacaoResource {
 
     private final SimulacaoDAO simulacaoDAO = new SimulacaoDAO();
-    private final SimulacaoBO simulacaoBO = new SimulacaoBO();
-    // GET: Listar todas as simulações
+
     @GET
     public Response listarSimulacoes() {
         try {
@@ -30,7 +24,6 @@ public class SimulacaoResource {
         }
     }
 
-    // GET: Obter simulação por ID
     @GET
     @Path("/{id}")
     public Response buscarSimulacao(@PathParam("id") int id) {
@@ -45,22 +38,22 @@ public class SimulacaoResource {
         }
     }
 
-    // POST: Criar nova simulação
-
-
-    // POST: Criar nova simulação
     @POST
-    public Response criarSimulacao(Simulacao simulacao) {
+    public Response cadastrarSimulacao(Simulacao simulacao) {
         try {
-            Simulacao resultado = simulacaoBO.processarSimulacao(simulacao);
-            return Response.status(Response.Status.CREATED).entity(resultado).build();
-        } catch (CustomException e) {
-            return Response.status(e.getStatusCode()).entity(e.getMessage()).build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Erro inesperado: " + e.getMessage()).build();
+            simulacaoDAO.cadastrarSimulacao(simulacao);
+            // Retorna uma mensagem de sucesso como JSON
+            return Response.status(Response.Status.CREATED)
+                    .entity("{\"message\": \"Simulação criada com sucesso!\"}")
+                    .build();
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\": \"Erro ao salvar a simulação: " + e.getMessage() + "\"}")
+                    .build();
         }
     }
-    // PUT: Atualizar simulação existente
+
     @PUT
     @Path("/{id}")
     public Response atualizarSimulacao(@PathParam("id") int id, Simulacao simulacao) {
@@ -76,13 +69,12 @@ public class SimulacaoResource {
         }
     }
 
-    // DELETE: Remover simulação por ID
     @DELETE
     @Path("/{id}")
     public Response deletarSimulacao(@PathParam("id") int id) {
         try {
-            boolean removido = simulacaoDAO.deletarSimulacao(id);
-            if (!removido) {
+            boolean deletado = simulacaoDAO.deletarSimulacao(id);
+            if (!deletado) {
                 return Response.status(Response.Status.NOT_FOUND).entity("Simulação não encontrada").build();
             }
             return Response.ok("Simulação removida com sucesso!").build();
