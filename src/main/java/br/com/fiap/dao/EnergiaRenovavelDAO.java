@@ -17,8 +17,9 @@ public class EnergiaRenovavelDAO {
         try (Connection conn = ConnectionFactory.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
+
             while (rs.next()) {
-                energias.add(new EnergiaRenovavel(
+                EnergiaRenovavel energia = new EnergiaRenovavel(
                         rs.getInt("id"),
                         rs.getString("tipo"),
                         rs.getFloat("custo_instalacao"),
@@ -26,11 +27,15 @@ public class EnergiaRenovavelDAO {
                         rs.getFloat("custo_manutencao"),
                         rs.getFloat("tempo_retorno"),
                         rs.getString("tipo_cliente")
-                ));
+                );
+                System.out.println("Energia encontrada: " + energia);
+                energias.add(energia);
             }
         }
+
         return energias;
     }
+
 
     // GET: Buscar energia renovável por ID
     public EnergiaRenovavel buscarPorId(int id) throws SQLException, ClassNotFoundException {

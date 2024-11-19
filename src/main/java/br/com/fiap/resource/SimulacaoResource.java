@@ -1,12 +1,15 @@
 package br.com.fiap.resource;
 
+import br.com.fiap.bo.SimulacaoBO;
 import br.com.fiap.dao.SimulacaoDAO;
+import br.com.fiap.exception.CustomException;
 import br.com.fiap.model.Simulacao;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.sql.SQLException;
+
 
 @Path("/simulacao")
 @Produces(MediaType.APPLICATION_JSON)
@@ -41,18 +44,19 @@ public class SimulacaoResource {
     @POST
     public Response cadastrarSimulacao(Simulacao simulacao) {
         try {
-            simulacaoDAO.cadastrarSimulacao(simulacao);
-            // Retorna uma mensagem de sucesso como JSON
-            return Response.status(Response.Status.CREATED)
-                    .entity("{\"message\": \"Simulação criada com sucesso!\"}")
-                    .build();
+            SimulacaoBO simulacaoBO = new SimulacaoBO();
+            Simulacao resultado = simulacaoBO.processarSimulacao(simulacao);
+
+            simulacaoDAO.cadastrarSimulacao(resultado);
+            return Response.status(Response.Status.CREATED).entity(resultado).build();
+        } catch (CustomException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("{\"error\": \"" + e.getMessage() + "\"}").build();
         } catch (SQLException | ClassNotFoundException e) {
-            e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("{\"error\": \"Erro ao salvar a simulação: " + e.getMessage() + "\"}")
-                    .build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("{\"error\": \"Erro no servidor: " + e.getMessage() + "\"}").build();
         }
     }
+
+
 
     @PUT
     @Path("/{id}")
@@ -82,4 +86,13 @@ public class SimulacaoResource {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
     }
+    @OPTIONS
+    public Response preflight() {
+        return Response.ok()
+                .header("Access-Control-Allow-Origin", "http://localhost:3000")
+                .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+                .header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+                .build();
+    }
+
 }
