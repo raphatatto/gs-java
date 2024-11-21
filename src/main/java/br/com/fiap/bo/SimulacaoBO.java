@@ -18,37 +18,18 @@ public class SimulacaoBO {
                 throw new CustomException("O tipo de cliente não pode ser nulo ou vazio.", 400);
             }
 
+            if (simulacao.getTipoEnergiaEscolhida() == null || simulacao.getTipoEnergiaEscolhida().trim().isEmpty()) {
+                throw new CustomException("O tipo de energia escolhida não pode ser nulo ou vazio.", 400);
+            }
+
             // Lista todas as energias do banco
             List<EnergiaRenovavel> energias = energiaRenovavelDAO.listarTodas();
 
-            System.out.println("Simulação recebida: " + simulacao);
-            System.out.println("Energias disponíveis: " + energias);
-
-            if (energias == null || energias.isEmpty()) {
-                throw new CustomException("Nenhuma energia renovável cadastrada.", 404);
-            }
-
-            EnergiaRenovavel melhorOpcao = null;
-
-            // Verifica o tipo de cliente e seleciona a energia apropriada
-            if ("Residencial".equalsIgnoreCase(simulacao.getTipoCliente().trim())) {
-                melhorOpcao = energias.stream()
-                        .filter(energia -> "Solar".equalsIgnoreCase(energia.getTipo()))
-                        .findFirst()
-                        .orElse(null);
-                System.out.println("Energia escolhida para Residencial: " + melhorOpcao);
-            } else if ("Comercial".equalsIgnoreCase(simulacao.getTipoCliente().trim())) {
-                melhorOpcao = energias.stream()
-                        .filter(energia -> "Eolica".equalsIgnoreCase(energia.getTipo()))
-                        .findFirst()
-                        .orElse(null);
-                System.out.println("Energia escolhida para Comercial: " + melhorOpcao);
-            }
-
-            if (melhorOpcao == null) {
-                System.out.println("Nenhuma energia renovável encontrada para o tipo de cliente: " + simulacao.getTipoCliente());
-                throw new CustomException("Não foi encontrada uma energia renovável adequada para o tipo de cliente: " + simulacao.getTipoCliente(), 404);
-            }
+            // Busca a melhor opção com base apenas no tipo de energia escolhida
+            EnergiaRenovavel melhorOpcao = energias.stream()
+                    .filter(energia -> energia.getTipo().equalsIgnoreCase(simulacao.getTipoEnergiaEscolhida()))
+                    .findFirst()
+                    .orElseThrow(() -> new CustomException("Tipo de energia selecionada não encontrada.", 404));
 
             float economiaMensal = simulacao.getCustoMensal() * melhorOpcao.getTaxaEconomia();
             float economiaAnual = economiaMensal * 12;

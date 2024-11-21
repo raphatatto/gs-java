@@ -9,6 +9,9 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 @Path("/simulacao")
@@ -19,9 +22,13 @@ public class SimulacaoResource {
     private final SimulacaoDAO simulacaoDAO = new SimulacaoDAO();
 
     @GET
-    public Response listarSimulacoes() {
+    public Response listarSimulacoes(@QueryParam("usuarioId") Integer usuarioId) {
         try {
-            return Response.ok(simulacaoDAO.listarTodas()).build();
+            if (usuarioId != null) {
+                return Response.ok(simulacaoDAO.listarPorUsuarioId(usuarioId)).build();
+            } else {
+                return Response.ok(simulacaoDAO.listarTodas()).build();
+            }
         } catch (SQLException | ClassNotFoundException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
@@ -43,6 +50,7 @@ public class SimulacaoResource {
 
     @POST
     public Response cadastrarSimulacao(Simulacao simulacao) {
+        System.out.println("Simulação recebida: " + simulacao);
         try {
             SimulacaoBO simulacaoBO = new SimulacaoBO();
             Simulacao resultado = simulacaoBO.processarSimulacao(simulacao);
@@ -62,30 +70,63 @@ public class SimulacaoResource {
     @Path("/{id}")
     public Response atualizarSimulacao(@PathParam("id") int id, Simulacao simulacao) {
         try {
+            Simulacao simulacaoExistente = simulacaoDAO.buscarPorId(id);
+            if (simulacaoExistente == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("{\"error\": \"Simulação não encontrada.\"}")
+                        .build();
+            }
+
+            if (simulacaoExistente.getUsuarioId() != simulacao.getUsuarioId()) {
+                return Response.status(Response.Status.FORBIDDEN)
+                        .entity("{\"error\": \"Usuário não autorizado para esta simulação.\"}")
+                        .build();
+            }
+
             simulacao.setId(id);
             boolean atualizado = simulacaoDAO.atualizarSimulacao(simulacao);
             if (!atualizado) {
-                return Response.status(Response.Status.NOT_FOUND).entity("Simulação não encontrada").build();
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .entity("{\"error\": \"Erro ao atualizar a simulação.\"}")
+                        .build();
             }
-            return Response.ok("Simulação atualizada com sucesso!").build();
+
+            return Response.ok("{\"message\": \"Simulação atualizada com sucesso!\"}").build();
         } catch (SQLException | ClassNotFoundException e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\": \"Erro no servidor: " + e.getMessage() + "\"}")
+                    .build();
+        }
+    }
+    @DELETE
+    @Path("/{id}")
+    public Response deletarSimulacao(@PathParam("id") int id, @HeaderParam("usuarioId") int usuarioId) {
+        System.out.println("Recebido para exclusão - Simulação ID: " + id + ", Usuário ID: " + usuarioId);
+
+        try {
+            Simulacao simulacao = simulacaoDAO.buscarPorId(id);
+            if (simulacao == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("{\"error\":\"Simulação não encontrada.\"}")
+                        .build();
+            }
+            System.out.println("Simulação encontrada - Usuário associado: " + simulacao.getUsuarioId());
+
+            boolean deletado = simulacaoDAO.deletarSimulacao(id);
+            if (deletado) {
+                return Response.ok("{\"message\":\"Simulação removida com sucesso.\"}").build();
+            } else {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .entity("{\"error\":\"Erro ao excluir a simulação.\"}")
+                        .build();
+            }
+        } catch (SQLException | ClassNotFoundException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"Erro ao processar a exclusão.\"}")
+                    .build();
         }
     }
 
-    @DELETE
-    @Path("/{id}")
-    public Response deletarSimulacao(@PathParam("id") int id) {
-        try {
-            boolean deletado = simulacaoDAO.deletarSimulacao(id);
-            if (!deletado) {
-                return Response.status(Response.Status.NOT_FOUND).entity("Simulação não encontrada").build();
-            }
-            return Response.ok("Simulação removida com sucesso!").build();
-        } catch (SQLException | ClassNotFoundException e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
-        }
-    }
     @OPTIONS
     public Response preflight() {
         return Response.ok()
@@ -95,4 +136,17 @@ public class SimulacaoResource {
                 .build();
     }
 
+    @GET
+    @Path("/usuario/{usuarioId}")
+    public Response listarSimulacoesPorUsuario(@PathParam("usuarioId") int usuarioId) {
+        try {
+            List<Simulacao> simulacoes = simulacaoDAO.listarPorUsuarioId(usuarioId);
+            return Response.ok(simulacoes).build();
+        } catch (SQLException | ClassNotFoundException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+        }
+    }
+
+
 }
+
