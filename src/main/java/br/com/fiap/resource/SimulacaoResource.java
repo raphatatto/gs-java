@@ -22,14 +22,13 @@ public class SimulacaoResource {
     private final SimulacaoDAO simulacaoDAO = new SimulacaoDAO();
 
     @GET
-    public Response listarSimulacoes(@QueryParam("usuarioId") Integer usuarioId) {
+    @Path("/")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listarSimulacoes(@QueryParam("usuarioId") int usuarioId) {
         try {
-            if (usuarioId != null) {
-                return Response.ok(simulacaoDAO.listarPorUsuarioId(usuarioId)).build();
-            } else {
-                return Response.ok(simulacaoDAO.listarTodas()).build();
-            }
-        } catch (SQLException | ClassNotFoundException e) {
+            List<Simulacao> simulacoes = simulacaoDAO.listarPorUsuarioId(usuarioId);
+            return Response.ok(simulacoes).build();
+        } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
     }
@@ -137,8 +136,8 @@ public class SimulacaoResource {
     }
 
     @GET
-    @Path("/usuario/{usuarioId}")
-    public Response listarSimulacoesPorUsuario(@PathParam("usuarioId") int usuarioId) {
+    @Path("/usuario")
+    public Response listarSimulacoesPorUsuario(@QueryParam("usuarioId") int usuarioId) {
         try {
             List<Simulacao> simulacoes = simulacaoDAO.listarPorUsuarioId(usuarioId);
             return Response.ok(simulacoes).build();
