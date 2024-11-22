@@ -12,7 +12,7 @@ EnergyCalc é uma aplicação voltada para simulações de consumo de energia co
 - **Repositório do front:** https://github.com/TCapela/GS2---FRONT.git
 - **Apresentação do projeto java e front:** https://youtu.be/guuTejE-Y0k
 - **Repositorio java:** https://github.com/raphatatto/gs-java.git
-- **Vídeo do pitch:**
+- **Vídeo do pitch:** https://www.youtube.com/watch?v=iR-8lpVbJQ8
 
 ## **Objetivo do Projeto**
 
