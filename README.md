@@ -147,13 +147,18 @@ As dependências e plugins utilizados no projeto estão especificados no arquivo
 
 ### **IMPORTANTE:**
 **Há uma chance de ao fazer o clone o programa não funcionar corretamente devido ao plugin do Lombok que por algum motivo ao ser enviado ao Github e depois ser clonado o programa não reconhece mais o Lombok, caso isso ocorra instale o zip do projeto no mesmo local onde você consegue a URL.**
+
 **Ferramenta:**
 Recomenda-se o uso do IntelliJ pois ele pode fornecer todas as funcionalidade e dependências necessárias sem chances de haver algum erro grave.
+
 **Dependências:**
 No IntelliJ tenha certeza de ter instalado a extensão do Lombok pois ela é fundamental para o funcionamento do sistema.
+
 **"Onde Baixar?"**
 Vá em File > Settings > Plugins
+
 Então clique em MarketPlace e pesquise "Lombok"
+
 Instale o plugin e clique em "apply" e depois em "ok"
 
 #### **1. Clone o repositório**
